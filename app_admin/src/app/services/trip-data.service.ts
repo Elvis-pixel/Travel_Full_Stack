@@ -1,6 +1,6 @@
 import { Injectable , Inject } from '@angular/core';
-import { Http } from '@angular/http';
-
+import { Http, Headers } from '@angular/http';
+import { HttpHeaders } from '@angular/common/http'
 import { Trip } from '../models/trip';
 import { BROWSER_STORAGE } from '../storage';
 import { User } from '../models/user';
@@ -18,10 +18,19 @@ export class TripDataService {
   private apiBaseUrl = 'http://localhost:3000/api/';
   private tripUrl = `${this.apiBaseUrl}trips/`;
 
+  private createAuthorizationHeader(): Headers {
+    const token = this.storage.getItem('travlr-token');
+    const headers = new Headers();
+    headers.append('Authorization', `Bearer ${token}`);
+    return headers;
+  }
+
   public addTrip(formData: Trip): Promise<Trip> {
     console.log('Inside TripDataService#addTrip');
+
+    const headers = this.createAuthorizationHeader();
     return this.http
-      .post(this.tripUrl, formData)
+      .post(this.tripUrl, formData, { headers: headers })
       .toPromise()
       .then(response => response.json() as Trip[])
       .catch(this.handleError);
@@ -29,8 +38,10 @@ export class TripDataService {
   
   public getTrip(tripCode: string): Promise<Trip> {
     console.log('Inside TripDataService#getTrip(tripcode)');
+
+    const headers = this.createAuthorizationHeader();
     return this.http
-      .get(this.tripUrl + tripCode)
+      .get(this.tripUrl + tripCode, { headers: headers })
       .toPromise()
       .then(response => response.json() as Trip)
       .catch(this.handleError);
@@ -38,8 +49,10 @@ export class TripDataService {
 
   public updateTrip(formData: Trip): Promise<Trip> {
     console.log('Inside TripDataService#updateTrip');
+
+    const headers = this.createAuthorizationHeader();
     return this.http
-      .put(this.tripUrl + formData.code, formData)
+      .put(this.tripUrl + formData.code, formData, { headers: headers })
       .toPromise()
       .then(response => response.json() as Trip[])
       .catch(this.handleError);
@@ -47,8 +60,10 @@ export class TripDataService {
 
   public getTrips(): Promise<Trip[]> {
     console.log('Inside TripDataService#getTrips');
+
+    const headers = this.createAuthorizationHeader();
     return this.http
-      .get(`${this.apiBaseUrl}trips`)
+      .get(`${this.apiBaseUrl}trips`, { headers: headers })
       .toPromise()
       .then(response => response.json() as Trip[])
       .catch(this.handleError);
@@ -69,8 +84,10 @@ export class TripDataService {
 
  private makeAuthApiCall(urlPath: string, user: User): Promise<AuthResponse> {
    const url: string = `${this.apiBaseUrl}/${urlPath}`;
+
+   const headers = this.createAuthorizationHeader();
    return this.http
-     .post(url, user)
+     .post(url, user,{ headers: headers })
      .toPromise()
      .then(response => response.json() as AuthResponse)
      .catch(this.handleError);
